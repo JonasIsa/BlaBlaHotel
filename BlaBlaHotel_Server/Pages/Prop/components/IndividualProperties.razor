@@ -1,0 +1,29 @@
+﻿
+@using BlaBlaHotel_Server.Model
+@code
+{
+    [Parameter]
+    public RenderFragment FirstRenderfragment { get; set; }
+    [Parameter]
+    public RenderFragment SecondRenderfragment { get; set; }
+
+    [Parameter]
+    public Aminities aminity { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnAminitySelection { get; set; }
+    protected async Task AminitySelectionChanged(MouseEventArgs e, string name)
+    {
+        await OnAminitySelection.InvokeAsync(name);
+    }
+}
+
+
+<div class=" bg-light border p-3 col-5" @onclick="(args)=> AminitySelectionChanged(args, aminity.Name)">
+    <h4 class="text-secondary">Amanity - @aminity.Id</h4>
+
+    @aminity.Name<br />
+    @aminity.Description<br />
+    RF from parent @FirstRenderfragment @SecondRenderfragment 
+
+</div>

@@ -1,0 +1,96 @@
+﻿@page "/hotel-room"
+@using Models;
+@using Business.Repos.iRepos
+@inject iHotelRoomRepo HotelRoomRepo
+@inject IJSRuntime JsRuntime
+@inject BlaBlaHotel_Server.Service.iService.iFileUpload fileUpload
+
+<div class="row mt-4">
+    <div class="col-8">
+        <h4 class="card-title text-info">Hotel Rooms</h4>
+    </div>
+    <div class="col-3 offset-1">
+        <NavLink href="hotel-room/create" class="btn btn-info form-control">Add new room</NavLink>
+    </div>
+</div>
+<div class=" row mt-4">
+    <div class="col-12">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Occupancy</th>
+                    <th>Price</th>
+                    <th>m2</th>
+                    <th>
+
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (hotelroomz.Any())
+                {
+                    foreach (var room in hotelroomz)
+                    {
+                <tr>
+                    <td>@room.Name</td>
+                    <td>@room.Occupancy</td>
+                    <td>@room.RegularRate</td>
+                    <td>@room.m2</td>
+                    <td>
+                        <NavLink href="@($"hotel-room/edit/{room.Id}")" class="btn btn-primary">Edit</NavLink>
+                        <button type="button" class="btn btn-danger" @onclick="()=>HandleDelete(room.Id)">Delete</button>
+                    </td>
+                </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5">No rooms found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<DeleteConfirmation ConfirmationChanged="ConfirmDelete_Click"></DeleteConfirmation>
+
+@code {
+    private IEnumerable<HotelRoomDTO> hotelroomz { get; set; } = new List<HotelRoomDTO>();
+    private int? DeleteRoomId { get; set; } = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hotelroomz = await HotelRoomRepo.GetAllHotelRoom();
+    }
+
+    private async Task HandleDelete(int roomId)
+    {
+        DeleteRoomId = roomId;
+        await JsRuntime.InvokeVoidAsync("ShowDeleteConfirmationModal");
+
+    }
+
+    public async Task ConfirmDelete_Click(bool isConfirmed)
+    {
+        if (isConfirmed && DeleteRoomId!=null)
+        {
+            HotelRoomDTO HotelRoom = await HotelRoomRepo.GetHotelRoom(DeleteRoomId.Value);
+            foreach (var images in HotelRoom.Images)
+            {
+                var imageName =  images.PictureURL.Replace($"RoomImages", "");
+                fileUpload.DeleteFile(imageName);
+            }
+
+
+            await HotelRoomRepo.DeleteHotelRoom(DeleteRoomId.Value);
+            await JsRuntime.ToastrSuccess("Room deleted!");
+            hotelroomz = await HotelRoomRepo.GetAllHotelRoom();
+
+        }
+        await JsRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");
+    }
+
+}

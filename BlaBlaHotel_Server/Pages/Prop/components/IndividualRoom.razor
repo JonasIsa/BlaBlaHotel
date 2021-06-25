@@ -1,0 +1,34 @@
+﻿
+@using BlaBlaHotel_Server.Model
+@code
+{
+    [Parameter]
+    public BlazorRoom Room1 { get; set; }
+    [Parameter]
+    public EventCallback<bool> OnRoomCheckboxSelection { get; set; }
+    protected async Task RoomSelectedCounterChanged(ChangeEventArgs e)
+    {
+        await OnRoomCheckboxSelection.InvokeAsync((bool)e.Value);
+    }
+}
+
+
+<div class=" bg-light border p-2 col-5">
+    <h4 class="text-secondary">Room - @Room1.ID</h4> 
+    <input type="checkbox" @onchange="RoomSelectedCounterChanged" />
+
+    @Room1.RoomName<br />
+    Price: @Room1.Price Sek<br />
+    <input type="checkbox" @bind-value="@Room1.Active" checked="@(Room1.Active ? "Checked" : null)" @bind-value:event="oninput" /> &nbsp; Is Active<br />
+    <span>This room is @(Room1.Active?"active":"not active")</span><br />
+    @if (Room1.Active)
+    {
+        @foreach (var roomProp in Room1.RoomProps)
+        {
+            <p>@roomProp.Name - @roomProp.Value</p>
+
+        }
+    }
+
+    <EditDeleteButtons IsAdmin="true"></EditDeleteButtons>
+</div>
